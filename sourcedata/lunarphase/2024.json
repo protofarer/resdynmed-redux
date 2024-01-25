@@ -1,0 +1,268 @@
+[
+	{
+		"day": 4,
+		"month": 1,
+		"phase": 3,
+		"time": "03:30",
+		"year": 2024
+	},
+	{
+		"day": 11,
+		"month": 1,
+		"phase": 0,
+		"time": "11:57",
+		"year": 2024
+	},
+	{
+		"day": 25,
+		"month": 1,
+		"phase": 2,
+		"time": "17:54",
+		"year": 2024
+	},
+	{
+		"day": 2,
+		"month": 2,
+		"phase": 3,
+		"time": "23:18",
+		"year": 2024
+	},
+	{
+		"day": 9,
+		"month": 2,
+		"phase": 0,
+		"time": "22:59",
+		"year": 2024
+	},
+	{
+		"day": 24,
+		"month": 2,
+		"phase": 2,
+		"time": "12:30",
+		"year": 2024
+	},
+	{
+		"day": 3,
+		"month": 3,
+		"phase": 3,
+		"time": "15:23",
+		"year": 2024
+	},
+	{
+		"day": 10,
+		"month": 3,
+		"phase": 0,
+		"time": "09:00",
+		"year": 2024
+	},
+	{
+		"day": 25,
+		"month": 3,
+		"phase": 2,
+		"time": "07:00",
+		"year": 2024
+	},
+	{
+		"day": 2,
+		"month": 4,
+		"phase": 3,
+		"time": "03:15",
+		"year": 2024
+	},
+	{
+		"day": 8,
+		"month": 4,
+		"phase": 0,
+		"time": "18:21",
+		"year": 2024
+	},
+	{
+		"day": 23,
+		"month": 4,
+		"phase": 2,
+		"time": "23:49",
+		"year": 2024
+	},
+	{
+		"day": 1,
+		"month": 5,
+		"phase": 3,
+		"time": "11:27",
+		"year": 2024
+	},
+	{
+		"day": 8,
+		"month": 5,
+		"phase": 0,
+		"time": "03:22",
+		"year": 2024
+	},
+	{
+		"day": 23,
+		"month": 5,
+		"phase": 2,
+		"time": "13:53",
+		"year": 2024
+	},
+	{
+		"day": 30,
+		"month": 5,
+		"phase": 3,
+		"time": "17:13",
+		"year": 2024
+	},
+	{
+		"day": 6,
+		"month": 6,
+		"phase": 0,
+		"time": "12:38",
+		"year": 2024
+	},
+	{
+		"day": 22,
+		"month": 6,
+		"phase": 2,
+		"time": "01:08",
+		"year": 2024
+	},
+	{
+		"day": 28,
+		"month": 6,
+		"phase": 3,
+		"time": "21:53",
+		"year": 2024
+	},
+	{
+		"day": 5,
+		"month": 7,
+		"phase": 0,
+		"time": "22:57",
+		"year": 2024
+	},
+	{
+		"day": 21,
+		"month": 7,
+		"phase": 2,
+		"time": "10:17",
+		"year": 2024
+	},
+	{
+		"day": 28,
+		"month": 7,
+		"phase": 3,
+		"time": "02:51",
+		"year": 2024
+	},
+	{
+		"day": 4,
+		"month": 8,
+		"phase": 0,
+		"time": "11:13",
+		"year": 2024
+	},
+	{
+		"day": 19,
+		"month": 8,
+		"phase": 2,
+		"time": "18:26",
+		"year": 2024
+	},
+	{
+		"day": 26,
+		"month": 8,
+		"phase": 3,
+		"time": "09:26",
+		"year": 2024
+	},
+	{
+		"day": 3,
+		"month": 9,
+		"phase": 0,
+		"time": "01:55",
+		"year": 2024
+	},
+	{
+		"day": 18,
+		"month": 9,
+		"phase": 2,
+		"time": "02:34",
+		"year": 2024
+	},
+	{
+		"day": 24,
+		"month": 9,
+		"phase": 3,
+		"time": "18:50",
+		"year": 2024
+	},
+	{
+		"day": 2,
+		"month": 10,
+		"phase": 0,
+		"time": "18:49",
+		"year": 2024
+	},
+	{
+		"day": 17,
+		"month": 10,
+		"phase": 2,
+		"time": "11:26",
+		"year": 2024
+	},
+	{
+		"day": 24,
+		"month": 10,
+		"phase": 3,
+		"time": "08:03",
+		"year": 2024
+	},
+	{
+		"day": 1,
+		"month": 11,
+		"phase": 0,
+		"time": "12:47",
+		"year": 2024
+	},
+	{
+		"day": 15,
+		"month": 11,
+		"phase": 2,
+		"time": "21:28",
+		"year": 2024
+	},
+	{
+		"day": 23,
+		"month": 11,
+		"phase": 3,
+		"time": "01:28",
+		"year": 2024
+	},
+	{
+		"day": 1,
+		"month": 12,
+		"phase": 0,
+		"time": "06:21",
+		"year": 2024
+	},
+	{
+		"day": 15,
+		"month": 12,
+		"phase": 2,
+		"time": "09:02",
+		"year": 2024
+	},
+	{
+		"day": 22,
+		"month": 12,
+		"phase": 3,
+		"time": "22:18",
+		"year": 2024
+	},
+	{
+		"day": 30,
+		"month": 12,
+		"phase": 0,
+		"time": "22:27",
+		"year": 2024
+	}
+]
