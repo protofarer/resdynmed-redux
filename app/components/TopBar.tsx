@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
+import { Link } from '@remix-run/react';
 
 import { useTimeStore } from '~/stores/timeStore';
 
@@ -86,9 +87,9 @@ export default function TopBar() {
 	const displayTime = useTimeStore((state) => state.displayTime)
 
 	return (
-		<div className='flex justify-between border-b'>
+		<div className='flex justify-between border-b-2 border-blue-400'>
 			<div className='flex gap-x-4 border'>
-				<div>Logo</div>
+				<Link to='/' className='text-blue-700 font-bold'>Logo</Link>
 				<div>Location.....</div>
 				<div>{displayTime || 'Need Server Data'}</div>
 				<div>Live..</div>

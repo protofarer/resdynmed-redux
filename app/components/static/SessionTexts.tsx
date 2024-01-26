@@ -6,7 +6,7 @@ export default function SessionTexts() {
 		{sessionTexts.map((text, idx) => (
 			<section key={idx}>
 				<h3 className="text-lg font-semibold">Session {idx + 1}</h3>
-				<p className="text-gray-600" dangerouslySetInnerHTML={{ __html: text }}></p>
+				<p dangerouslySetInnerHTML={{ __html: text }}></p>
 			</section>
 		))}
 		</section>

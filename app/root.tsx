@@ -9,7 +9,6 @@ import {
   Scripts,
   ScrollRestoration,
   json,
-  useLoaderData,
 } from "@remix-run/react";
 import store from "store2";
 
@@ -18,8 +17,8 @@ import stylesheet from "~/tailwind.css";
 
 import TopBar from "./components/TopBar";
 import { getServerTime } from "./lib/time";
-import { ServerTimeResponse } from "./types";
 import { syncStores } from "./stores/sync";
+import { ServerTimeResponse } from "./types";
 
 
 

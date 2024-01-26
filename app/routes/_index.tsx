@@ -1,37 +1,87 @@
-import { type MetaFunction } from "@remix-run/node";
+import { LoaderFunctionArgs, json, type MetaFunction, LinksFunction } from "@remix-run/node";
+import { Form, Link, useLoaderData, useNavigation, useSubmit } from "@remix-run/react";
+import { useEffect } from "react";
 
 import About from "~/components/static/About";
-import IntroText from "~/components/static/IntroText";
-import SessionTexts from "~/components/static/SessionTexts";
+import stylesHref from '~/styles/global.css'
 
+export const links: LinksFunction = () => [
+  { rel: 'stylesheet', href: stylesHref }
+]
 
-export const meta: MetaFunction = () => [{ title: "Resonant Dynamic Meditation Experience" }];
+export const meta: MetaFunction = () => [{ title: "Resonant Dynamic Meditation Experience" }]
 
-// export const loader = async () => {
-  // verify user has fresh datetime data
-    // check localStorage
-    // check staleness
-    // init as needed
+export async function loader({ request }: LoaderFunctionArgs) {
+  // if user auth'd, use account's timezone instead of client's system corrected version
+  const url = new URL(request.url)
+  const q = url.searchParams.get('q')
 
-  // if user auth'd, ensure correct time zone stored and displayed
-// }
+  if (!q) {
+    return { q: null, cities: null }
+  }
+
+  // const cities = await getCities(q)
+  const cities = ['miami', 'varginhas', 'bangladesh', 'bangkok']
+  const filteredCities = cities.filter(city => city.startsWith(q || ""))
+
+  return json({ q, cities: filteredCities })
+}
 
 function Index() {
+  const { q, cities } = useLoaderData<typeof loader>()
+  const navigation = useNavigation()
+  const submit = useSubmit()
+  const searching = navigation.location &&
+    new URLSearchParams(navigation.location.search).has('q')
+
+  useEffect(() => {
+    const searchField = document.getElementById('q')
+    if (searchField instanceof HTMLInputElement) {
+      searchField.value = q || ''
+    }
+  }, [q])
+
   return (
-    <main className="relative min-h-screen bg-white sm:flex sm:items-center sm:justify-center">
-      {/* <div className="moon-container">
-        <a href="/" className="moon">
-          <div className="moon-disc"></div>
-          <div className="moon-text"></div>
-        </a>
-        <div className="moon-diffusor"></div>
-      </div>  */}
-      <div className="mx-auto mt-10 max-w-sm sm:flex sm:flex-col sm:max-w-none sm:justify-center">
-        --------- LANDING SEARCH FUNCTIONALITY HERE ----------
-        <br />
-        <IntroText />
-        <SessionTexts />
+    <main className="relative min-h-screen bg-white">
+      <div className="mx-auto mt-5">
+        {/* Search and Results */}
+        <div className='border-b border-black flex flex-col items-center p-y-1 p-x-2'>
+          <Form
+            id='search-form'
+            role='search'
+            onChange={(event) => {
+              const isFirstSearch = q === null;
+              submit(event.currentTarget, { replace: !isFirstSearch })
+            }}
+            className='border border-green-700 relative'
+          >
+            <input
+              id='q'
+              name='q'
+              type='search'
+              defaultValue={q || ''}
+              placeholder='Search for a location'
+              aria-label='Search for a location'
+              className={searching ? 'loading' : ''}
+            />
+            <div id='search-spinner' hidden={!searching} aria-hidden />
+          </Form>
+          <div>
+            {/* This rolldown must be definitive locations for USNO API to use */}
+            {cities ? cities.map((city: string) => (
+              // TODO onClick, execute query
+              // show next session
+              // show countdown
+              // show links to calendars: next 10, monthly, yearly
+              // add distilled query terms to url searchparams (can be passed to calendars page)
+              <div key={city}>{city}</div>
+            )) : null}
+          </div>
+        </div>
+
+        <Link to='/info' className='text-blue-700 text-center font-semibold'>Info</Link>
         <About />
+
       </div>
     </main>
   );
