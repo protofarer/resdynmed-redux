@@ -35,7 +35,10 @@
     "isbot": "^3.7.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "tiny-invariant": "^1.3.1"
+    "remix-typedjson": "^0.4.1",
+    "store2": "^2.14.2",
+    "tiny-invariant": "^1.3.1",
+    "zustand": "^4.5.0"
   },
   "devDependencies": {
     "@faker-js/faker": "^8.2.0",
