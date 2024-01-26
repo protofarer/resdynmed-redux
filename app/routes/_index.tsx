@@ -28,7 +28,6 @@ function Index() {
       </div>  */}
       <div className="mx-auto mt-10 max-w-sm sm:flex sm:flex-col sm:max-w-none sm:justify-center">
         --------- LANDING SEARCH FUNCTIONALITY HERE ----------
-        {/* {fetcher.data?.serverTime ? <div>{fetcher.data.serverTime}</div> : <div>loading...</div>} */}
         <br />
         <IntroText />
         <SessionTexts />

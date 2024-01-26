@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
+import { useTimeStore } from '~/stores/timeStore';
+
 interface NavItem {
 	name: string;
 	link?: string;
@@ -80,16 +82,22 @@ const LOC_SESSION_TOOLBAR: NavItem[] =[
 	},
 ]
 
-export default function TopBar({ displayTime }: { displayTime?: string }) {
+export default function TopBar() {
+	const displayTime = useTimeStore((state) => state.displayTime)
+
 	return (
-		<div className="flex justify-between">
-			<div>Logo</div>
-			<div>Location</div>
-			<div>{displayTime || 'No Time Data'}</div>
-			<div>Live</div>
-			<div>Countdown</div>
-			<div>Calendar</div>
-			<div>Profile</div>
+		<div className='flex justify-between border-b'>
+			<div className='flex gap-x-4 border'>
+				<div>Logo</div>
+				<div>Location.....</div>
+				<div>{displayTime || 'Need Server Data'}</div>
+				<div>Live..</div>
+			</div>
+			<div className='flex gap-x-2 border'>
+				<div>CTDN_TMR</div>
+				<div>CALENDAR</div>
+				<div>Profile</div>
+			</div>
 		</div>
 	)	
 }

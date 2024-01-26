@@ -1,22 +1,27 @@
 import { cssBundleHref } from "@remix-run/css-bundle";
 import type { LinksFunction, LoaderFunctionArgs } from "@remix-run/node";
 import {
+  ClientLoaderFunctionArgs,
   Links,
   LiveReload,
   Meta,
   Outlet,
   Scripts,
   ScrollRestoration,
+  json,
+  useLoaderData,
 } from "@remix-run/react";
-import { useEffect } from "react";
-import { typedjson, useTypedLoaderData } from "remix-typedjson";
+import store from "store2";
 
 import { getUser } from "~/session.server";
 import stylesheet from "~/tailwind.css";
 
 import TopBar from "./components/TopBar";
 import { getServerTime } from "./lib/time";
-import { useTimeStore } from "./stores/timeStore";
+import { ServerTimeResponse } from "./types";
+import { syncStores } from "./stores/sync";
+
+
 
 
 export const links: LinksFunction = () => [
@@ -24,22 +29,55 @@ export const links: LinksFunction = () => [
   ...(cssBundleHref ? [{ rel: "stylesheet", href: cssBundleHref }] : []),
 ]
 
-export const loader = async ({ request }: LoaderFunctionArgs) => {
-  return typedjson({ 
+export async function loader({ request }: LoaderFunctionArgs) {
+  return json({ 
     user: await getUser(request),
-    serverTime: getServerTime()
+    serverTime: getServerTime(),
+    displayTime: null
   })
 }
 
+let isInitialRequest = true;
+
+export async function clientLoader({ serverLoader }: ClientLoaderFunctionArgs) {
+
+  if (isInitialRequest) {
+    console.log(`INITIALIZE CACHE!`, )
+    isInitialRequest = false
+
+    const serverData = await serverLoader<ServerTimeResponse>()
+    const { displayTime, displayUTCTime } = syncStores(serverData.serverTime)
+
+    return { displayTime, displayUTCTime }
+  }
+
+  const cachedServerTime = store.get('serverTime')
+  const cachedDisplayTime = store.get('displayTime')
+
+  if (cachedServerTime && cachedDisplayTime) {
+    console.log(`CACHE HIT BABY!`, )
+
+    return { displayTime: cachedDisplayTime, serverTime: new Date(cachedServerTime).toLocaleString('en-US', {
+      month: 'short', 
+      day: 'numeric', 
+      year: 'numeric', 
+      hour: 'numeric', 
+      hour12: true, 
+      minute: 'numeric', 
+    }) }
+  }
+
+  console.log(`CACHE EMPTY WOOPS!`, )
+
+  const serverData = await serverLoader<ServerTimeResponse>()
+  const { displayTime, displayUTCTime } = syncStores(serverData.serverTime)
+
+  return { displayTime, serverTime: displayUTCTime }
+}
+
+clientLoader.hydrate = true;
+
 export default function App() {
-	const { serverTime } = useTypedLoaderData<typeof loader>();
-  const sync = useTimeStore((state) => state.sync)
-  const displayTime = useTimeStore((state) => state.displayTime)
-
-  useEffect(() => {
-    sync(serverTime)
-  })
-
   return (
     <html lang="en" className="h-full">
       <head>
@@ -49,7 +87,7 @@ export default function App() {
         <Links />
       </head>
       <body className="h-full">
-        <TopBar displayTime={displayTime} />
+        <TopBar />
         <Outlet />
         <ScrollRestoration />
         <Scripts />
