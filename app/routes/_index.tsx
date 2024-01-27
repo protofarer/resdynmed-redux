@@ -4,6 +4,7 @@ import { useEffect } from "react";
 
 import About from "~/components/static/About";
 import { Button } from "~/components/ui/button";
+import { useTimeStore } from "~/stores/timeStore";
 import stylesHref from '~/styles/global.css'
 
 export const links: LinksFunction = () => [
@@ -31,18 +32,22 @@ export async function loader({ request }: LoaderFunctionArgs) {
 // TODO action, validate query before redirect
 export async function action({ request }: LoaderFunctionArgs) {
   const formData = await request.formData()
-  const location = formData.get('location')
-  console.log(`loc`, location)
+  const location = formData.get('loc')
+  const time = formData.get('time')
 
   const isLocationValid = true
   if (!isLocationValid) {
     return json({ error: 'invalid location' }, { status: 400 })
   }
 
-  return redirect(`/portal?loc=${location}`)
+  return redirect(`/portal?loc=${location}&time=${time}`)
 }
 
 function Index() {
+  const { getCurrentUTC } = useTimeStore()
+  console.log(`gCurrUTC`, getCurrentUTC())
+  
+  
   const { q, cities } = useLoaderData<typeof loader>()
   const navigation = useNavigation()
   const submit = useSubmit()
@@ -96,8 +101,16 @@ function Index() {
           >
             <input
               id='mock-location'
-              name='location'
-              value='some value'
+              name='loc'
+              value='SOME_LOC'
+              hidden={true}
+              readOnly
+            />
+            <input
+              id='mock-time'
+              name='time'
+              value={getCurrentUTC()}
+              hidden={true}
               readOnly
             />
             <Button variant='secondary' type='submit'>Mock Submit Loc</Button>
@@ -106,7 +119,6 @@ function Index() {
 
         <Link to='/info' className='text-blue-700 text-center font-semibold'>Info</Link>
         <About />
-
       </div>
     </main>
   );

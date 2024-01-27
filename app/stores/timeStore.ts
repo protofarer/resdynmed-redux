@@ -5,42 +5,48 @@ import { create } from 'zustand'
 // ? CSDR rm setClientTime, setServerTime
 
 interface TimeState {
-  serverTime?: Date
-  displayTime?: string
+  initServerTime?: Date
+  initLocalTime?: string
   dT?: number // n of seconds client's system difference from serverTime, a constant only updated on sync
   timeZone?: string
 }
 
 interface TimeActions {
-  sync: (serverTime?: Date) => void
   getPassedTime: () => number | undefined
-  getDisplayTime: () => Promise<string | undefined>
+  getCurrentLocalTime: () => string | undefined
+  getCurrentUTC: () => string | undefined
 }
 
 // TODO if no time is set, and offline, throw and show error, disable offline functionality
 
 export const useTimeStore = create<TimeState & TimeActions>((set, get) => ({
-  serverTime: new Date(store.get('serverTime')) || null,
+  initServerTime: new Date(store.get('initServerTime')) || null,
+  initLocalTime: store.get('initLocalTime') || null,
 
-  displayTime: store.get('displayTime') || null,
+  getPassedTime: () => {
+    const initServerTime = get().initServerTime
+    const dT = get().dT
+    console.log(`dT in getPassedTime`, dT)
 
-  // since sync receives server time, it doesnt care if stale, it has latest data so it will execute sync
-  sync: (serverTime?: Date) => {
-    if (!serverTime) {
-      return
+    if (!initServerTime || !dT) {
+      return undefined
     }
-    set({ serverTime })
-    store.set('serverTime', serverTime.toISOString())
 
-    const dT = (Date.now() - serverTime.getTime()) / 1000
-    set({ dT })
-    store.set('dT', dT)
+    return (Date.now() - (initServerTime.getTime() - dT)) / 1000
+  },
 
-    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
-    store.set('timeZone', timeZone)
-    set({ timeZone })
+  getCurrentLocalTime: () => {
+    let initServerTime = get().initServerTime
+    const timeZone = get().timeZone
+    const passedTime = get().getPassedTime()
 
-    const displayTime = serverTime.toLocaleString('en-US', { 
+    if (!initServerTime || !timeZone || !passedTime) {
+      return undefined
+    }
+
+    initServerTime = new Date(initServerTime.getTime() + passedTime)
+
+    return initServerTime.toLocaleString('en-US', { 
       timeZone, 
       month: 'short', 
       day: 'numeric', 
@@ -49,42 +55,20 @@ export const useTimeStore = create<TimeState & TimeActions>((set, get) => ({
       hour12: true, 
       minute: 'numeric', 
     })
-    store.set('displayTime', displayTime)
-    set({ displayTime })
   },
 
-  getPassedTime: () => {
-    const time = get().serverTime
-    const dst = get().dT
-
-    if (!time || !dst) {
+  getCurrentUTC: () => {
+    const initServerTime = get().initServerTime
+    const passedTime = get().getPassedTime()
+    console.log(`passedtime`, passedTime)
+    console.log(`initServerTime`, initServerTime)
+    if (!initServerTime || !passedTime) {
       return undefined
     }
 
-    return (Date.now() - (time.getTime() - dst)) / 1000
-  },
-
-  getDisplayTime: async () => {
-    let isStale = true;
-
-    const dt = get().getPassedTime()
-    if (dt && dt < 60 * 60 * 24) {
-      isStale = false
-    }
-
-
-    if (isStale) {
-      try {
-        const res = await fetch('http://localhost:8080/server-time')
-        const { serverTime } = await res.json()
-        get().sync(serverTime)
-        console.log(`serverTime in store`, serverTime)
-        
-      } catch (error) {
-        console.error(error)
-      }
-    }
-
-    return get().displayTime
+    const currentUTC = new Date(initServerTime.getTime() + passedTime)
+    const out = currentUTC.toISOString()
+    
+    return out
   }
 }))

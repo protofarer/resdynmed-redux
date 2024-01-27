@@ -49,8 +49,8 @@ export async function clientLoader({ serverLoader }: ClientLoaderFunctionArgs) {
     return { displayTime, displayUTCTime }
   }
 
-  const cachedServerTime = store.get('serverTime')
-  const cachedDisplayTime = store.get('displayTime')
+  const cachedServerTime = store.get('initServerTime')
+  const cachedDisplayTime = store.get('initLocalTime')
 
   if (cachedServerTime && cachedDisplayTime) {
     console.log(`CACHE HIT`, )
@@ -85,7 +85,7 @@ export default function App() {
         <Meta />
         <Links />
       </head>
-      <body className="h-full bg-background text-foreground">
+      <body className="h-full bg-background text-foreground p-1 sm:p-2 lg:p-4">
         <TopBar displayTime={displayTime} />
         <Outlet />
         <ScrollRestoration />
