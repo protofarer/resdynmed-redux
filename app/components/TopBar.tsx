@@ -83,9 +83,7 @@ const LOC_SESSION_TOOLBAR: NavItem[] =[
 	},
 ]
 
-export default function TopBar() {
-	const displayTime = useTimeStore((state) => state.displayTime)
-
+export default function TopBar({ displayTime }: { displayTime: string; }) {
 	return (
 		<div className='flex justify-between border-b-2 border-blue-400'>
 			<div className='flex gap-x-4 border'>

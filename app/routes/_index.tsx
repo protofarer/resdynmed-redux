@@ -1,4 +1,4 @@
-import { LoaderFunctionArgs, json, type MetaFunction, LinksFunction } from "@remix-run/node";
+import { LoaderFunctionArgs, json, type MetaFunction, LinksFunction, redirect } from "@remix-run/node";
 import { Form, Link, useLoaderData, useNavigation, useSubmit } from "@remix-run/react";
 import { useEffect } from "react";
 
@@ -25,6 +25,20 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const filteredCities = cities.filter(city => city.startsWith(q || ""))
 
   return json({ q, cities: filteredCities })
+}
+
+// TODO action, validate query before redirect
+export async function action({ request }: LoaderFunctionArgs) {
+  const formData = await request.formData()
+  const location = formData.get('location')
+  console.log(`loc`, location)
+
+  const isLocationValid = true
+  if (!isLocationValid) {
+    return json({ error: 'invalid location' }, { status: 400 })
+  }
+
+  return redirect(`/portal?loc=${location}`)
 }
 
 function Index() {
@@ -70,14 +84,23 @@ function Index() {
             {/* This rolldown must be definitive locations for USNO API to use */}
             {cities ? cities.map((city: string) => (
               // TODO onClick, execute query
-              // show next session
-              // show countdown
-              // show links to calendars: next 10, monthly, yearly
-              // add distilled query terms to url searchparams (can be passed to calendars page)
               <div key={city}>{city}</div>
             )) : null}
           </div>
         </div>
+          <Form
+            id='mock-submit-query'
+            className='border border-green-700 relative'
+            method='post'
+          >
+            <input
+              id='mock-location'
+              name='location'
+              value='some value'
+              readOnly
+            />
+            <button className='border-4 rounded border-purple-600' type='submit'>submit mock</button>
+          </Form>
 
         <Link to='/info' className='text-blue-700 text-center font-semibold'>Info</Link>
         <About />

@@ -9,6 +9,7 @@ import {
   Scripts,
   ScrollRestoration,
   json,
+  useLoaderData,
 } from "@remix-run/react";
 import store from "store2";
 
@@ -36,13 +37,14 @@ export async function loader({ request }: LoaderFunctionArgs) {
   })
 }
 
-let isInitialRequest = true;
-
 export async function clientLoader({ serverLoader }: ClientLoaderFunctionArgs) {
+  const isInitialRequest = store.get('isInitialRequest')
+  if (isInitialRequest === undefined)
+    store.set('isInitialRequest', true)
 
   if (isInitialRequest) {
-    console.log(`INITIALIZE CACHE!`, )
-    isInitialRequest = false
+    console.log(`INIT CACHE`, )
+    store.set('isInitialRequest', false)
 
     const serverData = await serverLoader<ServerTimeResponse>()
     const { displayTime, displayUTCTime } = syncStores(serverData.serverTime)
@@ -54,7 +56,7 @@ export async function clientLoader({ serverLoader }: ClientLoaderFunctionArgs) {
   const cachedDisplayTime = store.get('displayTime')
 
   if (cachedServerTime && cachedDisplayTime) {
-    console.log(`CACHE HIT BABY!`, )
+    console.log(`CACHE HIT`, )
 
     return { displayTime: cachedDisplayTime, serverTime: new Date(cachedServerTime).toLocaleString('en-US', {
       month: 'short', 
@@ -67,7 +69,6 @@ export async function clientLoader({ serverLoader }: ClientLoaderFunctionArgs) {
   }
 
   console.log(`CACHE EMPTY WOOPS!`, )
-
   const serverData = await serverLoader<ServerTimeResponse>()
   const { displayTime, displayUTCTime } = syncStores(serverData.serverTime)
 
@@ -77,6 +78,8 @@ export async function clientLoader({ serverLoader }: ClientLoaderFunctionArgs) {
 clientLoader.hydrate = true;
 
 export default function App() {
+  const { displayTime } = useLoaderData<typeof clientLoader>()
+
   return (
     <html lang="en" className="h-full">
       <head>
@@ -86,7 +89,7 @@ export default function App() {
         <Links />
       </head>
       <body className="h-full">
-        <TopBar />
+        <TopBar displayTime={displayTime} />
         <Outlet />
         <ScrollRestoration />
         <Scripts />
