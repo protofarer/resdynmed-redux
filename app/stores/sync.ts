@@ -3,16 +3,18 @@ import store from "store2"
 import { useTimeStore } from "./timeStore"
 
 export function syncStores(serverTimeString: string) {
+  console.log(`serverTimeString`, serverTimeString)
+  
   store.set('initServerTime', serverTimeString)
 
-  const serverTime = new Date(serverTimeString)
-  const dT = (Date.now() - serverTime.getTime()) / 1000
+  const initServerTime = new Date(serverTimeString)
+  const dT = (Date.now() - initServerTime.getTime()) / 1000
   store.set('dT', dT)
 
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
   store.set('timeZone', timeZone)
 
-  const initLocalTime = serverTime.toLocaleString('en-US', { 
+  const initLocalTime = initServerTime.toLocaleString('en-US', { 
     timeZone, 
     month: 'short', 
     day: 'numeric', 
@@ -23,7 +25,7 @@ export function syncStores(serverTimeString: string) {
   })
   store.set('initLocalTime', initLocalTime)
 
-  useTimeStore.setState({ initServerTime: new Date(serverTimeString), initLocalTime, dT, timeZone })
+  useTimeStore.setState({ initServerTime, initLocalTime, dT, timeZone })
 
-  return { displayTime: initLocalTime }
+  return { initLocalTime }
 }

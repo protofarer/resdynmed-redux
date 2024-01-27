@@ -1,4 +1,3 @@
-import store from 'store2'
 import { create } from 'zustand'
 
 // const SECONDS_IN_DAY = 60 * 60 * 24
@@ -20,13 +19,12 @@ interface TimeActions {
 // TODO if no time is set, and offline, throw and show error, disable offline functionality
 
 export const useTimeStore = create<TimeState & TimeActions>((set, get) => ({
-  initServerTime: new Date(store.get('initServerTime')) || null,
-  initLocalTime: store.get('initLocalTime') || null,
+  initServerTime: undefined,
+  initLocalTime: undefined,
 
   getPassedTime: () => {
     const initServerTime = get().initServerTime
     const dT = get().dT
-    console.log(`dT in getPassedTime`, dT)
 
     if (!initServerTime || !dT) {
       return undefined
@@ -60,8 +58,10 @@ export const useTimeStore = create<TimeState & TimeActions>((set, get) => ({
   getCurrentUTC: () => {
     const initServerTime = get().initServerTime
     const passedTime = get().getPassedTime()
-    console.log(`passedtime`, passedTime)
-    console.log(`initServerTime`, initServerTime)
+    console.log(`iST`, initServerTime)
+    console.log(`pT`, passedTime)
+    
+    
     if (!initServerTime || !passedTime) {
       return undefined
     }

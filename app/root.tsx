@@ -29,53 +29,44 @@ export const links: LinksFunction = () => [
 export async function loader({ request }: LoaderFunctionArgs) {
   return json({ 
     user: await getUser(request),
-    serverTime: getServerTime(),
-    displayTime: null
+    initServerTime: getServerTime(),
+    initLocalTime: null
   })
 }
 
 export async function clientLoader({ serverLoader }: ClientLoaderFunctionArgs) {
-  const isInitialRequest = store.get('isInitialRequest')
-  if (isInitialRequest === undefined)
-    store.set('isInitialRequest', true)
+  const isInitialRequest = store.get('isInitialRequest') || true;
 
   if (isInitialRequest) {
     console.log(`INIT CACHE`, )
     store.set('isInitialRequest', false)
 
     const serverData = await serverLoader<ServerTimeResponse>()
-    const { displayTime, displayUTCTime } = syncStores(serverData.serverTime)
+    const { initLocalTime } = syncStores(serverData.initServerTime)
 
-    return { displayTime, displayUTCTime }
+    return { initLocalTime, initServerTime: serverData.initServerTime }
   }
 
-  const cachedServerTime = store.get('initServerTime')
-  const cachedDisplayTime = store.get('initLocalTime')
+  const cachedInitServerTime = store.get('initServerTime')
+  const cachedInitLocalTime = store.get('initLocalTime')
 
-  if (cachedServerTime && cachedDisplayTime) {
+  if (cachedInitServerTime && cachedInitLocalTime) {
     console.log(`CACHE HIT`, )
 
-    return { displayTime: cachedDisplayTime, serverTime: new Date(cachedServerTime).toLocaleString('en-US', {
-      month: 'short', 
-      day: 'numeric', 
-      year: 'numeric', 
-      hour: 'numeric', 
-      hour12: true, 
-      minute: 'numeric', 
-    }) }
+    return { initLocalTime: cachedInitLocalTime, initServerTime: cachedInitServerTime }
   }
 
   console.log(`CACHE EMPTY WOOPS!`, )
   const serverData = await serverLoader<ServerTimeResponse>()
-  const { displayTime, displayUTCTime } = syncStores(serverData.serverTime)
+  const { initLocalTime } = syncStores(serverData.initServerTime)
 
-  return { displayTime, serverTime: displayUTCTime }
+  return { initLocalTime, initServerTime: serverData.initServerTime }
 }
 
 clientLoader.hydrate = true;
 
 export default function App() {
-  const { displayTime } = useLoaderData<typeof clientLoader>()
+  const { initLocalTime } = useLoaderData<typeof clientLoader>()
 
   return (
     <html lang="en" className="h-full">
@@ -86,7 +77,7 @@ export default function App() {
         <Links />
       </head>
       <body className="h-full bg-background text-foreground p-1 sm:p-2 lg:p-4">
-        <TopBar displayTime={displayTime} />
+        <TopBar displayTime={initLocalTime} />
         <Outlet />
         <ScrollRestoration />
         <Scripts />
