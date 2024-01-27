@@ -1,17 +1,14 @@
+import fs from 'fs';
+import path from 'path';
+
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 
+
 const prisma = new PrismaClient();
 
-async function seed() {
-  const email = "rachel@remix.run";
-
-  // cleanup the existing database
-  await prisma.user.delete({ where: { email } }).catch(() => {
-    // no worries if it doesn't exist yet
-  });
-
-  const hashedPassword = await bcrypt.hash("racheliscool", 10);
+async function createUser(email: string) {
+  const hashedPassword = await bcrypt.hash("foo", 10);
 
   const user = await prisma.user.create({
     data: {
@@ -23,6 +20,42 @@ async function seed() {
       },
     },
   });
+
+  return user;
+}
+async function seed() {
+  const email = "rachel@remix.run";
+
+  // CLEANUP THE EXISTING DATABASE
+  await prisma.user.delete({ where: { email } }).catch(() => {
+    // no worries if it doesn't exist yet
+  });
+
+  // await prisma.moonPhases.deleteMany({});
+
+  const DIR_SRCDAT = 'src-dat';
+  const DIR_MOONPHASES = 'moonphases'
+  const srcDatPath = `../${DIR_SRCDAT}/${DIR_MOONPHASES}`;
+  const files = fs.readdirSync(srcDatPath);
+
+  for (const file of files) {
+    const filePath = path.join(srcDatPath, file);
+
+    // each file contains a year's worth of moon phases
+    const fileContents = fs.readFileSync(filePath, 'utf8');
+    const moonPhasesByYear = JSON.parse(fileContents);
+
+    for (const data of moonPhasesByYear) {
+      await prisma.moonPhase.create({
+        data: {
+          time: data.time,
+          phase: data.phase
+        },
+      });
+    }
+  }
+
+  const user = await createUser(email);
 
   await prisma.note.create({
     data: {

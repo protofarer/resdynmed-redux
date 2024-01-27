@@ -7,6 +7,14 @@ generator client {
   provider = "prisma-client-js"
 }
 
+model MoonPhase {
+  id    Int    @id @default(autoincrement())
+  time  String
+  phase String
+
+  @@index([time])
+}
+
 model User {
   id    String @id @default(cuid())
   email String @unique
