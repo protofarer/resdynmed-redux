@@ -3,6 +3,7 @@ import { Form, Link, useLoaderData, useNavigation, useSubmit } from "@remix-run/
 import { useEffect } from "react";
 
 import About from "~/components/static/About";
+import { Button } from "~/components/ui/button";
 import stylesHref from '~/styles/global.css'
 
 export const links: LinksFunction = () => [
@@ -99,7 +100,8 @@ function Index() {
               value='some value'
               readOnly
             />
-            <button className='border-4 rounded border-purple-600' type='submit'>submit mock</button>
+            <Button variant='secondary' type='submit'>Mock Submit Loc</Button>
+            {/* <button className='border-4 rounded border-purple-600' type='submit'>submit mock</button> */}
           </Form>
 
         <Link to='/info' className='text-blue-700 text-center font-semibold'>Info</Link>

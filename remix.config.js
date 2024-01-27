@@ -6,4 +6,6 @@ module.exports = {
   // dev: {
   //   port: 8002
   // }
+  tailwind: true,
+  postcss: true,
 };

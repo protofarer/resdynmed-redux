@@ -14,15 +14,12 @@ import {
 import store from "store2";
 
 import { getUser } from "~/session.server";
-import stylesheet from "~/tailwind.css";
+import stylesheet from "~/styles/global.css";
 
 import TopBar from "./components/TopBar";
 import { getServerTime } from "./lib/time";
 import { syncStores } from "./stores/sync";
 import { ServerTimeResponse } from "./types";
-
-
-
 
 export const links: LinksFunction = () => [
   { rel: "stylesheet", href: stylesheet },
@@ -88,7 +85,7 @@ export default function App() {
         <Meta />
         <Links />
       </head>
-      <body className="h-full">
+      <body className="h-full bg-background text-foreground">
         <TopBar displayTime={displayTime} />
         <Outlet />
         <ScrollRestoration />
