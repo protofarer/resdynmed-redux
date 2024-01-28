@@ -1,4 +1,5 @@
 import fs from 'fs';
+import os from 'os';
 import path from 'path';
 
 import { PrismaClient } from "@prisma/client";
@@ -31,13 +32,13 @@ async function seed() {
     // no worries if it doesn't exist yet
   });
 
-  // await prisma.moonPhases.deleteMany({});
+  await prisma.moonPhase.deleteMany({});
 
-  const DIR_SRCDAT = 'src-dat';
-  const DIR_MOONPHASES = 'moonphases'
-  const srcDatPath = `../${DIR_SRCDAT}/${DIR_MOONPHASES}`;
+  const srcDatPath = path.join(os.homedir(), 'spaces/projects/resdynmed-redux/srcdat/moonphases');
   const files = fs.readdirSync(srcDatPath);
 
+  let i = 0;
+  const transactionInserts = [];
   for (const file of files) {
     const filePath = path.join(srcDatPath, file);
 
@@ -45,15 +46,25 @@ async function seed() {
     const fileContents = fs.readFileSync(filePath, 'utf8');
     const moonPhasesByYear = JSON.parse(fileContents);
 
+    // lump into one large transaction, creating 1 row per transaction is slow (~20/sec)
     for (const data of moonPhasesByYear) {
-      await prisma.moonPhase.create({
+      transactionInserts.push(prisma.moonPhase.create({
         data: {
           time: data.time,
           phase: data.phase
         },
-      });
+      }));
+
+      if (i % 2000 === 0) {
+        console.log(`${i*100/20000}% time:${data.time} phase:${data.phase}`, );
+      }
+      i++;
     }
   }
+  await prisma.$transaction(transactionInserts);
+
+  console.log(`${i} moon phase records seeded`, );
+  
 
   const user = await createUser(email);
 
