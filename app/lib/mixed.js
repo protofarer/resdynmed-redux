@@ -1,13 +1,3 @@
-export async function fetchSessionsForYearAndAdjacent(year) {
-  const sessions1 = await fetch(`/sessions/${year - 1}.json`).then((response) => response.json());
-  const sessions2 = await fetch(`/sessions/${year}.json`).then((response) => response.json());
-  const sessions3 = await fetch(`/sessions/${year + 1}.json`).then((response) => response.json());
-  return [...sessions1, ...sessions2, ...sessions3];
-}
-
-export async function fetchSessionsForYear(year) {
-  return await fetch(`/sessions/${year}.json`).then((response) => response.json());
-}
 
 // const MOON_COLORS = [
 //   'violet',
@@ -74,29 +64,4 @@ export function miniMoonWithLink(parentElement, sessionObject) {
   container.appendChild(label);
 
   return container;
-}
-
-export function findFirstCycleStartIndexFromDate(date, sessions) {
-// find first cycle start index on or after given date
-  let startIdx = -1;
-  const day = date.getDate();
-  const padDay = day < 10 ? `0${day}` : day;
-  const month = date.getMonth() + 1;
-  const padMonth = month < 10 ? `0${month}` : month;
-  const matchString =  `${date.getFullYear()}-${padMonth}-${padDay}`;
-  startIdx = sessions.findIndex(x => Object.keys(x)[0].slice(0, 10) >= matchString) ;
-  return startIdx;
-}
-
-// ? NB added sessions to args upon migrate, was this fn ever used?
-export function findPrevCycleStartIndexFromDate(date, sessions) {
-// find first cycle start index before given date
-  let startIdx = -1;
-  const day = date.getDate();
-  const padDay = day < 10 ? `0${day}` : day;
-  const month = date.getMonth() + 1;
-  const padMonth = month < 10 ? `0${month}` : month;
-  const matchString =  `${date.getFullYear()}-${padMonth}-${padDay}`;
-  startIdx = sessions.findIndex(x => Object.keys(x)[0].slice(0, 10) >= matchString) ;
-  return startIdx;
 }

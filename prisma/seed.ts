@@ -61,9 +61,13 @@ async function seed() {
       i++;
     }
   }
-  await prisma.$transaction(transactionInserts);
+  try {
+    await prisma.$transaction(transactionInserts);
+    console.log(`${i} moon phase records seeded`, );
+  } catch (error) {
+    console.error(error);
+  }
 
-  console.log(`${i} moon phase records seeded`, );
   
 
   const user = await createUser(email);
