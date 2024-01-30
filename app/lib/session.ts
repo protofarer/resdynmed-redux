@@ -55,8 +55,6 @@ export async function getFirstPhaseAfterDate(date: Date): Promise<TransformedMoo
 			time: 'asc'
 		},
 	})
-	console.log(`time straight outta db`, data?.time )
-		
 	return data ? {
 		date: new Date(data.time),
 		phase: data.phase
@@ -67,7 +65,6 @@ export async function generateSessionsAfterDate(startDate: Date, coords: GeoCoor
   if (!n) n = 1
 
   const sessions = []
-  let n_sessions_generated = 0
 
   const initialPhase = await getFirstPhaseBeforeDate(startDate)
 
@@ -98,7 +95,8 @@ export async function generateSessionsAfterDate(startDate: Date, coords: GeoCoor
 	let cycle: Cycle = {}
   
 
-  while (n_sessions_generated < n) {
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
 		// Sessions ~between Last Quarter and New Moon
 		if (!currentPhase) {
 			console.error('No phase data found after date:', startDate)
@@ -114,15 +112,15 @@ export async function generateSessionsAfterDate(startDate: Date, coords: GeoCoor
 				const s7 = await findSession7(cycle.lastDate, cycle.t2, coords)	// 7: LQ + T_2 sunset nearest
 				if (s7) {
 					sessions.push({[s7?.toISOString()]: 7})
-					n_sessions_generated++
+					if (sessions.length >= n) break;
 					const s8 = await findSession8(s7, cycle.t2, coords)	// 8: LQ + 2*T_2 sunset nearest
 					if (s8) {
 						sessions.push({[s8?.toISOString()]: 8})
-						n_sessions_generated++
+						if (sessions.length >= n) break;
 						const s9 = await findSession9(s8, cycle.t2, coords)	// 9: LQ + 3*T_2 sunset nearest
 						if (s9) {
 							sessions.push({[s9?.toISOString()]: 9})
-							n_sessions_generated++
+							if (sessions.length >= n) break;
 						} else { console.error('No sunset found for session 9') }
 					} else { console.error('No sunset found for session 8') }
 				} else { console.error('No sunset found for session 7') }
@@ -134,7 +132,7 @@ export async function generateSessionsAfterDate(startDate: Date, coords: GeoCoor
 			const s10 = await findSession10(cycle.newDate, coords);
 			if (s10) {
 				sessions.push({ [s10?.toISOString()]: 10 })
-				n_sessions_generated++
+				if (sessions.length >= n) break;
 			} else {
 				console.error('No sunset found for session 10')
 			}
@@ -146,10 +144,11 @@ export async function generateSessionsAfterDate(startDate: Date, coords: GeoCoor
 			// Session based solely off Full Moon
 		} else if (currentPhase.phase === 'FULL') {
 			cycle.fullDate = currentPhase.date
+
 			const s2 = await findSession2(cycle.fullDate, coords)	// 2: sunset after full moon
 			if (s2) {
-				sessions.push({[s2?.toISOString()]: 2})
-				n_sessions_generated++
+				sessions.push({[s2.toISOString()]: 2})
+				if (sessions.length >= n) break;
 			} else {
 				console.error('No sunset found for session 2')
 			}
@@ -161,25 +160,26 @@ export async function generateSessionsAfterDate(startDate: Date, coords: GeoCoor
 			cycle.lastDate = currentPhase.date
 
 			// if full moon date available, can calculate t1
-			if (cycle?.fullDate) {
+			if (cycle.fullDate) {
 				cycle.t1 = (cycle.lastDate.getTime() - cycle.fullDate.getTime()) / 4
+				
 				const s1 = await findSession1(cycle.fullDate, cycle.t1, coords)	// 1: FM - T_1 sunset nearest
 				if (s1) {
 					sessions.push({[s1?.toISOString()]: 1})
-					n_sessions_generated++
+					if (sessions.length >= n) break;
 				} else { console.error('No sunset found for session 1') }
 				const s3 = await findSession3(cycle.fullDate, cycle.t1, coords)	// 3: FM + T_1 sunset nearest
 				if (s3) {
 					sessions.push({[s3?.toISOString()]: 3})
-					n_sessions_generated++
+					if (sessions.length >= n) break;
 					const s4 = await findSession4(s3, cycle.t1, coords)	// 4: FM + 2*T_1 sunset nearest
 					if (s4) {
 						sessions.push({[s4?.toISOString()]: 4})
-						n_sessions_generated++
+						if (sessions.length >= n) break;
 						const s5 = await findSession5(s4, cycle.t1, coords)	// 5: FM + 3*T_1 sunset nearest
 						if (s5) {
 							sessions.push({[s5?.toISOString()]: 5})
-							n_sessions_generated++
+							if (sessions.length >= n) break;
 						} else { console.error('No sunset found for session 5') }
 					} else { console.error('No sunset found for session 4') }
 				} else { console.error('No sunset found for session 3') }
@@ -190,15 +190,11 @@ export async function generateSessionsAfterDate(startDate: Date, coords: GeoCoor
 			const s6 = await findSession6(cycle.lastDate, coords);			// 6: sunset nearest last quarter moon
 			if (s6) {
 				sessions.push({[s6?.toISOString()]: 6})
-				n_sessions_generated++
+				if (sessions.length >= n) break;
 			} else { console.error('No sunset found for session 6') }
 
 			currentPhase = await getFirstPhaseAfterDate(currentPhase.date)
 		}
-
-    if (sessions.length >= n) {
-      break;
-    }
 	}
 
 	return sessions;
@@ -207,13 +203,15 @@ export async function generateSessionsAfterDate(startDate: Date, coords: GeoCoor
 type FindSessionArgsA = [Date, number, GeoCoords];
 type FindSessionArgsB = [Date, GeoCoords];
 
-export function findSession1(...args: FindSessionArgsA): Promise<Date | null> {
+export async function findSession1(...args: FindSessionArgsA): Promise<Date | null> {
+	console.log(`try find s1`, )
 	const [fullDate, t1, coords] = args;
 	const pointInTime = new Date(fullDate.getTime() - t1);
-	return findNearestSunset(pointInTime, coords);
+	return await findNearestSunset(pointInTime, coords);
 }
 
 export async function findSession2(...args: FindSessionArgsB): Promise<Date | null> {
+	console.log(`try find s2`, )
 	const [fullDate, coords] = args;
 	return await findFirstSunsetAfter(fullDate, coords);
 }
@@ -224,21 +222,21 @@ export async function findSession3(...args: FindSessionArgsA): Promise<Date | nu
 	return await findNearestSunset(pointInTime, coords);
 }
 
-export function findSession4(...args: FindSessionArgsA): Promise<Date | null> {
+export async function findSession4(...args: FindSessionArgsA): Promise<Date | null> {
 	const [s3, t1, coords] = args;
 	const pointInTime = new Date(s3.getTime() + t1);
-	return findNearestSunset(pointInTime, coords);
+	return await findNearestSunset(pointInTime, coords);
 }
 
-export function findSession5(...args: FindSessionArgsA): Promise<Date | null> {
+export async function findSession5(...args: FindSessionArgsA): Promise<Date | null> {
 	const [s4, t1, coords] = args;
 	const pointInTime = new Date(s4.getTime() + t1);
-	return findNearestSunset(pointInTime, coords);
+	return await findNearestSunset(pointInTime, coords);
 }
 
-export function findSession6(...args: FindSessionArgsB): Promise<Date | null> {
+export async function findSession6(...args: FindSessionArgsB): Promise<Date | null> {
 	const [datetimeLastQuarter, coords] = args;
-	return findNearestSunset(datetimeLastQuarter, coords);
+	return await findNearestSunset(datetimeLastQuarter, coords);
 }
 
 export async function findSession7(...args: FindSessionArgsA): Promise<Date | null> {
@@ -267,7 +265,7 @@ export async function findSession10(...args: FindSessionArgsB): Promise<Date | n
 export async function findFirstSunsetAfter(date: Date, coords: GeoCoords): Promise<Date | null> {
 	const dateDayAfter = new Date(date);
 	dateDayAfter.setDate(date.getDate() + 1);
-	const sunsetTimeDayAfter = await getSunsetTime(dateDayAfter, coords);
+	const sunsetTimeDayAfter = (await getSunsetTime(dateDayAfter, coords))?.time;
 
 	if (!sunsetTimeDayAfter) {
 		return null;
@@ -275,6 +273,7 @@ export async function findFirstSunsetAfter(date: Date, coords: GeoCoords): Promi
 
 	const dateStringDayAfter = dateDayAfter.toISOString().slice(0,10);
 	const sunsetDatetimeDayAfter = new Date(`${dateStringDayAfter}T${sunsetTimeDayAfter}Z`);
+	
 	return sunsetDatetimeDayAfter;
 }
 
@@ -308,7 +307,7 @@ export async function findNearestSunset(date: Date, coords: GeoCoords): Promise<
 
 export async function findSunsetDatetimeByDay(date: Date, coords: GeoCoords): Promise<Date | null> {
 	// so far used for sunsets found by some multiple of T_1 or T_2 from another sunset
-	const sunsetTime = await getSunsetTime(date, coords);
+	const sunsetTime = (await getSunsetTime(date, coords))?.time;
 	if (!sunsetTime) {
 		return null;
 	}

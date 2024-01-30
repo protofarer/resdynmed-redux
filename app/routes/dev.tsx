@@ -1,10 +1,50 @@
 import { ActionFunctionArgs, json } from "@remix-run/node";
-import { Form, useActionData } from "@remix-run/react";
+import { Form, useActionData, useLoaderData } from "@remix-run/react";
 import { useEffect, useState } from "react";
 
 import { Button } from "~/components/ui/button";
-import { getFirstPhaseAfterDate } from "~/lib/session";
+import { generateSessionsAfterDate, getFirstPhaseAfterDate, getFirstPhaseBeforeDate } from "~/lib/session";
 import { getSunsetTime } from "~/lib/use-api";
+
+let val: unknown = null;
+
+const DATE = new Date(Date.UTC(2024, 1, 1))
+
+const COORDS = {
+	lat:25.710583,
+	lon: -80.441457
+}
+
+const tests = [
+	async() => {
+		await getSunsetTime(DATE, COORDS).then (sunset => {
+			console.log(`sunset val:`, sunset);
+			val = sunset?.time
+		});
+	},
+
+	async() => {
+		await getFirstPhaseAfterDate(DATE).then(data => {
+			val = data
+		})
+	},
+
+	async() => {
+		await getFirstPhaseBeforeDate(DATE).then(data => {
+			val = data
+		})
+	},
+	async() => {
+		await generateSessionsAfterDate(DATE, COORDS, 10).then(data => {
+			val = data
+		})
+	}
+]
+
+export function loader() {
+	return json({ n_tests: tests.length })
+}
+
 
 // call functions in `session.ts` to test
 export async function action({ request }: ActionFunctionArgs) {
@@ -17,36 +57,16 @@ export async function action({ request }: ActionFunctionArgs) {
 		clear = true
 	}
 
-	let val = null;
-
-	const DATE = new Date()
-	
-	const COORDS = {
-		lat:25.710583,
-		lon: -80.441457
+	if (test) {
+		await tests[parseInt(test as string) - 1]()
 	}
-
-	const tests = [
-		async() => {
-			await getSunsetTime(DATE, COORDS).then (sunset => {
-				console.log(`sunset val:`, sunset);
-				val = sunset?.time
-			});
-		},
-
-		async() => {
-			await getFirstPhaseAfterDate(DATE).then(data => {
-				val = data
-			})
-		},
-	]
-
-	await tests[parseInt(test as string) - 1]()
 
 	return json({ val, clear })
 }
 
 export default function Dev() {
+	const { n_tests } = useLoaderData<typeof loader>()
+	
 	const data = useActionData<typeof action>()
 	const [lines, setLines] = useState<string[]>([])
 
@@ -59,6 +79,16 @@ export default function Dev() {
 		}
 	}, [data])
 
+	const testForms = [];
+	for (let i = 0; i < n_tests; i++) {
+		testForms.push(
+			<Form method='post' key={i}>
+				<input type='text' name='test' value={i + 1} hidden={true} readOnly />
+				<Button variant='outline' size='sm' type='submit'>{i + 1}</Button>
+			</Form>
+		)
+	}
+
 	return (
 		<>
 			<div className='bg-black h-full flex flex-col gap-3 p-2'>
@@ -67,14 +97,7 @@ export default function Dev() {
 						<input type='text' name='clear' value='true' hidden={true} readOnly />
 						<Button variant='outline' size='sm' type='submit'>Clear</Button>
 					</Form>
-					<Form method='post'>
-						<input type='text' name='test' value='1' hidden={true} readOnly />
-						<Button variant='outline' size='sm' type='submit'>1</Button>
-					</Form>
-					<Form method='post'>
-						<input type='text' name='test' value='2' hidden={true} readOnly />
-						<Button variant='outline' size='sm' type='submit'>2</Button>
-					</Form>
+					{testForms}
 				</div>
 				<div>
 					<textarea 

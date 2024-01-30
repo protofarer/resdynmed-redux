@@ -132,9 +132,6 @@ export async function getSunsetTime(date: Date, coords: { lat: number, lon: numb
   }
 
   const sunsetTimeString = parseSunsetFromDailyData(entry);
-  console.log(`sunsettime:`, sunsetTimeString)
-
-  // ? need? date obj with orig day + sunset time
   return { time: sunsetTimeString, entry };
 }
 
