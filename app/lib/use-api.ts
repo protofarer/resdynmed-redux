@@ -1,3 +1,5 @@
+import axios, { isAxiosError } from "axios";
+
 // key is a date "YYYY-MM-DD"
 export type USNODailyDataSingleDay = Entry;
 
@@ -43,21 +45,58 @@ interface Event {
     time: string;
 }
 
-// TODO fetch 1 daily sun moon data by date and loc, cull, and parse
-export async function fetchDailyAPI(date: Date, coords: { lat: number, lon: number }): Promise<Entry> {
+interface ApiError {
+  response_status?: number;
+  message?: string;
+  error_details?: unknown;
+};
+
+// missing:
+// - handle connection/network issues
+// - timeouts
+// - retry logic (for 503 service unavailable)
+// - validate response data
+
+export async function fetchDailyAPI(date: Date, coords: { lat: number, lon: number }): Promise<{ entry?: USNODailyDataSingleDay, error?: ApiError }> {
   const dateString = date.toISOString().slice(0,10); // YYYY-MM-DD per https://aa.usno.navy.mil/data/api
   const formattedCoords = `${coords.lat},${coords.lon}`;
+  const url = `https://aa.usno.navy.mil/api/rstt/oneday?id=kennybar&date=${dateString}&coords=${formattedCoords}`;
 
-	const response = await fetch(`https://aa.usno.navy.mil/api/rstt/oneday?id=kennybar&date=${dateString}&coords=${formattedCoords}`);
-  const data = await response.json() as USNODailyDataSingleDay;
+  try {
+    const response = await axios.get<USNODailyDataSingleDay>(url, { timeout: 5000 });
 
-  // TODO handle empty and error responses
+    const data = response.data;
+    if (data.apiversion.split('.')[0] !== '4') {
+      return { error: { message: 'USNO API version changed from 4, check for breaking changes' } };
+    }
 
-  if (data.apiversion.split('.')[0] !== '4') {
-    console.error(`WARNING: USNO API version changed from 4, check for breaking changes`);
+    return { entry: data };
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } catch (error: unknown) {
+    let errorMessage = 'Error fetching data from USNO daily API';
+
+    if (isAxiosError(error)) {
+      errorMessage = error.message;
+
+      if (error.response) {
+        return {
+          error: {
+            response_status: error.response.status,
+            message: errorMessage,
+            error_details: error.response.data
+          }
+        };
+      }
+    }
+
+    return {
+      error: {
+        message: errorMessage,
+        error_details: error 
+      }
+    }
   }
-
-  return data;
 }
 
 export function parseSunsetFromDailyData(entry: Entry): string | undefined {
@@ -71,13 +110,32 @@ export function parseSunsetFromDailyData(entry: Entry): string | undefined {
   return sunsetTime;
 }
 
-export async function getSunsetTime(date: Date, coords: { lat: number, lon: number }): Promise<{ time: string | undefined, entry: Entry } | undefined> {
-  const entry = await fetchDailyAPI(date, coords);
+interface SunsetTimeResult {
+  time: string | undefined;
+  entry: Entry;
+}
+export async function getSunsetTime(date: Date, coords: { lat: number, lon: number }): Promise<SunsetTimeResult | null> {
+  const { entry, error } = await fetchDailyAPI(date, coords);
+
+  if (error) {
+    console.error("USNO API error:", {
+      responseStatus: error.response_status,
+      message: error.message,
+      details: error.error_details
+    })
+    return null;
+  }
+
+  if (!entry) {
+    console.error('No data received from USNO API');
+    return null;
+  }
+
   const sunsetTimeString = parseSunsetFromDailyData(entry);
   console.log(`sunsettime:`, sunsetTimeString)
+
+  // ? need? date obj with orig day + sunset time
   return { time: sunsetTimeString, entry };
-  
-  // TODO need? date obj with orig day + sunset time
 }
 
 // DEV
