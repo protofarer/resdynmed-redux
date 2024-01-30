@@ -2,7 +2,7 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, MoonPhase } from "@prisma/client";
 import bcrypt from "bcryptjs";
 
 
@@ -44,10 +44,13 @@ async function seed() {
 
     // each file contains a year's worth of moon phases
     const fileContents = fs.readFileSync(filePath, 'utf8');
-    const moonPhasesByYear = JSON.parse(fileContents);
+    const moonPhasesByYear: MoonPhase[] = JSON.parse(fileContents);
+    const relevantPhases = moonPhasesByYear.filter((data) => (
+      data.phase === 'NEW' || data.phase === 'FULL' || data.phase === 'LAST'
+    ));
 
     // lump into one large transaction, creating 1 row per transaction is slow (~20/sec)
-    for (const data of moonPhasesByYear) {
+    for (const data of relevantPhases) {
       transactionInserts.push(prisma.moonPhase.create({
         data: {
           time: data.time,
