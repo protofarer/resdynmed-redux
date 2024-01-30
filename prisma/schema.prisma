@@ -7,6 +7,16 @@ generator client {
   provider = "prisma-client-js"
 }
 
+model City {
+  id          Int   @id @default(autoincrement())
+  city        String
+  cityAscii   String
+  lat         Float
+  lon         Float
+  countryName String
+  countryCode String
+}
+
 model MoonPhase {
   id    Int    @id @default(autoincrement())
   time  String
