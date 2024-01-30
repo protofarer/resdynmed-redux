@@ -36,6 +36,7 @@ async function seed() {
 
   const srcDatPath = path.join(os.homedir(), 'spaces/projects/resdynmed-redux/srcdat/moonphases');
   const files = fs.readdirSync(srcDatPath);
+  const estimatedPhaseRecords = files.length * 50 * 0.75;
 
   let i = 0;
   const transactionInserts = [];
@@ -58,8 +59,8 @@ async function seed() {
         },
       }));
 
-      if (i % 2000 === 0) {
-        console.log(`${i*100/20000}% time:${data.time} phase:${data.phase}`, );
+      if (i % (Math.floor(estimatedPhaseRecords * 0.1)) === 0) {
+        console.log(`${Math.floor(i*100/estimatedPhaseRecords)}% time:${data.time} phase:${data.phase}`, );
       }
       i++;
     }
