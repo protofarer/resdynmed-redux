@@ -119,6 +119,7 @@ function Index() {
 
         <Link to='/info' className='text-blue-700 text-center font-semibold'>Info</Link>
         <About />
+        <Link to='/dev' className='text-4xl text-red-700 text-center font-semibold'>Dev</Link>
       </div>
     </main>
   );
