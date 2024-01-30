@@ -35,9 +35,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function clientLoader({ serverLoader }: ClientLoaderFunctionArgs) {
-  const isInitialRequest = store.get('isInitialRequest') || true;
+  const isInitialRequest = store.get('isInitialRequest');
 
-  if (isInitialRequest) {
+  if (isInitialRequest === true) {
     console.log(`INIT CACHE`, )
     store.set('isInitialRequest', false)
 

@@ -58,9 +58,6 @@ export const useTimeStore = create<TimeState & TimeActions>((set, get) => ({
   getCurrentUTC: () => {
     const initServerTime = get().initServerTime
     const passedTime = get().getPassedTime()
-    console.log(`iST`, initServerTime)
-    console.log(`pT`, passedTime)
-    
     
     if (!initServerTime || !passedTime) {
       return undefined

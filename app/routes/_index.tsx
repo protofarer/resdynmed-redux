@@ -45,8 +45,6 @@ export async function action({ request }: LoaderFunctionArgs) {
 
 function Index() {
   const { getCurrentUTC } = useTimeStore()
-  console.log(`gCurrUTC`, getCurrentUTC())
-  
   
   const { q, cities } = useLoaderData<typeof loader>()
   const navigation = useNavigation()
@@ -65,7 +63,7 @@ function Index() {
     <main className="relative min-h-screen bg-white">
       <div className="mx-auto mt-5">
         {/* Search and Results */}
-        <div className='border-b border-black flex flex-col items-center p-y-1 p-x-2'>
+        <div className='border-b border-black flex flex-col items-center p-y-1 p-x-2 gap-y-2'>
           <Form
             id='search-form'
             role='search'
@@ -94,32 +92,32 @@ function Index() {
             )) : null}
           </div>
         </div>
-          <Form
-            id='mock-submit-query'
-            className='border border-green-700 relative'
-            method='post'
-          >
-            <input
-              id='mock-location'
-              name='loc'
-              value='SOME_LOC'
-              hidden={true}
-              readOnly
-            />
-            <input
-              id='mock-time'
-              name='time'
-              value={getCurrentUTC()}
-              hidden={true}
-              readOnly
-            />
-            <Button variant='secondary' type='submit'>Mock Submit Loc</Button>
-            {/* <button className='border-4 rounded border-purple-600' type='submit'>submit mock</button> */}
-          </Form>
-
+        <Form
+          id='mock-submit-query'
+          className='border border-green-700 relative'
+          method='post'
+        >
+          <input
+            id='mock-location'
+            name='loc'
+            value='SOME_LOC'
+            hidden={true}
+            readOnly
+          />
+          <input
+            id='mock-time'
+            name='time'
+            value={getCurrentUTC()}
+            hidden={true}
+            readOnly
+          />
+          <Button variant='secondary' type='submit'>Mock Submit Loc</Button>
+          {/* <button className='border-4 rounded border-purple-600' type='submit'>submit mock</button> */}
+        </Form>
         <Link to='/info' className='text-blue-700 text-center font-semibold'>Info</Link>
         <About />
-        <Link to='/dev' className='text-4xl text-red-700 text-center font-semibold'>Dev</Link>
+        <br />
+        <Link to='/dev' className='text-4xl text-red-700 text-center font-semibold border border-red-500 rounded-md'>Dev</Link>
       </div>
     </main>
   );

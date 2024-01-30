@@ -3,8 +3,6 @@ import store from "store2"
 import { useTimeStore } from "./timeStore"
 
 export function syncStores(serverTimeString: string) {
-  console.log(`serverTimeString`, serverTimeString)
-  
   store.set('initServerTime', serverTimeString)
 
   const initServerTime = new Date(serverTimeString)
