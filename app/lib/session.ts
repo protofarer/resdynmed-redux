@@ -26,7 +26,7 @@ interface TransformedMoonPhaseDBData {
 	phase: string;
 }
 
-async function getFirstPhaseBeforeDate(date: Date): Promise<TransformedMoonPhaseDBData | null> {
+export async function getFirstPhaseBeforeDate(date: Date): Promise<TransformedMoonPhaseDBData | null> {
 	const data = await prisma.moonPhase.findFirst({
 		where: {
 			time: {
@@ -43,7 +43,7 @@ async function getFirstPhaseBeforeDate(date: Date): Promise<TransformedMoonPhase
 	} : null
 }
 
-async function getFirstPhaseAfterDate(date: Date): Promise<TransformedMoonPhaseDBData | null> {
+export async function getFirstPhaseAfterDate(date: Date): Promise<TransformedMoonPhaseDBData | null> {
 		// limit 1
 	const data = await prisma.moonPhase.findFirst({
 		where: {
@@ -55,6 +55,8 @@ async function getFirstPhaseAfterDate(date: Date): Promise<TransformedMoonPhaseD
 			time: 'asc'
 		},
 	})
+	console.log(`time straight outta db`, data?.time )
+		
 	return data ? {
 		date: new Date(data.time),
 		phase: data.phase

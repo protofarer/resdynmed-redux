@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* eslint-disable no-unused-vars */
 
 // fetch dates for major lunar phases for each year up to 2100
 // cull each JSON to the following fields for each phase date: phase, year, month, day, time
@@ -30,10 +31,9 @@ async function fetchAll() {
 			const timeString = x.time.split(":");
 			const hours = parseInt(timeString[0], 10);
 			const minutes = parseInt(timeString[1], 10);
-			const time = new Date(x.year, x.month - 1, x.day, hours, minutes);
-
+			const time = Date.UTC(x.year, x.month - 1, x.day, hours, minutes);
 			return {
-				time,
+				time: new Date(time),
 				phase: QUARTERS[x.phase]
 			}
 		});
@@ -64,18 +64,18 @@ async function transformAll() {
     const moonPhasesByYear = JSON.parse(fileContents);
 
 		const fixedTimes = moonPhasesByYear.map(x => {
-			const timeString = x.time.split(":");
-			const hours = parseInt(timeString[0], 10);
-			const minutes = parseInt(timeString[1], 10);
-			const time = new Date(x.year, x.month - 1, x.day, hours, minutes);
+			// const timeString = x.time.split(":");
+			// const hours = parseInt(timeString[0], 10);
+			// const minutes = parseInt(timeString[1], 10);
+			const time = new Date(x.time);
 
 			return {
-				phase: x.phase,
+				...x,
 				time
 			}
 		});
 	
-		fs.writeFile(`${DIR_MOONPHASES}/fixed/${file}`, JSON.stringify(fixedTimes), (err) => {
+		fs.writeFile(`${DIR_MOONPHASES}/${file}`, JSON.stringify(fixedTimes), (err) => {
 			if (err) {
 				console.log(`error writing file for year ${file}`, );
 				throw err
@@ -87,4 +87,4 @@ async function transformAll() {
 }
 
 await transformAll();
-
+// await fetchAll()
