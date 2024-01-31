@@ -1,11 +1,23 @@
-import { LoaderFunctionArgs, json, type MetaFunction, LinksFunction, redirect } from "@remix-run/node";
+import { LoaderFunctionArgs, json, type MetaFunction, LinksFunction, redirect, ActionFunctionArgs } from "@remix-run/node";
 import { Form, Link, useLoaderData, useNavigation, useSubmit } from "@remix-run/react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import invariant from "tiny-invariant";
 
 import About from "~/components/static/About";
 import { Button } from "~/components/ui/button";
 import { useTimeStore } from "~/stores/timeStore";
 import stylesHref from '~/styles/global.css'
+
+export type Entry = { 
+  city: string;
+  state?: string;
+  country: string;
+} & Coords
+
+export interface Coords {
+  lat: number;
+  lon: number;
+}
 
 export const links: LinksFunction = () => [
   { rel: 'stylesheet', href: stylesHref }
@@ -19,77 +31,150 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const q = url.searchParams.get('q')
 
   if (!q) {
-    return { q: null, cities: null }
+    return json({ q: '', matches: null })
   }
 
-  // const cities = await getCities(q)
-  const cities = ['miami', 'varginhas', 'bangladesh', 'bangkok']
-  const filteredCities = cities.filter(city => city.startsWith(q || ""))
+  // TODO
+  // const entries = await matchOnLocationQuery(q)
 
-  return json({ q, cities: filteredCities })
+  const entries: Entry[] = [
+    { city: 'atlanta', state: 'Georgia', country: 'US', lat: 100.010, lon: -10.99999 }, 
+    { city: 'barcelona', state: undefined, country: 'US', lat: 200.010, lon: -10.99999 }, 
+    { city: 'bangladesh', state: undefined, country: 'US', lat: 300.010, lon: -10.99999 }, 
+    { city: 'cincinnati', state: 'ohio', country: 'US', lat: 400.010, lon: -10.99999 }, 
+    { city: 'cleveland', state: 'ohio', country: 'US', lat: 500.010, lon: -10.99999 }, 
+    { city: 'columbus', state: 'ohio', country: 'US', lat: 600.010, lon: -10.99999 }
+  ]
+  const matches = entries.filter(entry => entry.city.startsWith(q || ""))
+
+  return json({ q, matches })
 }
 
-// TODO action, validate query before redirect
-export async function action({ request }: LoaderFunctionArgs) {
+// Action only for clicking on matches
+export async function action({ request }: ActionFunctionArgs) {
+  // if coords valid, redirect to portal
   const formData = await request.formData()
-  const location = formData.get('loc')
-  const time = formData.get('time')
+  const latInput = formData.get('lat') as string
+  const lonInput = formData.get('lon') as string
+  console.log(`string coords: ${latInput},${lonInput}`, )
 
-  const isLocationValid = true
-  if (!isLocationValid) {
-    return json({ error: 'invalid location' }, { status: 400 })
+  // TODO put in a validation function
+  // TODO validate actual ranges for lat/lon
+  try {
+    invariant(latInput && lonInput, 'unexpected missing lat or lon')
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error(error)
+    } else {
+      console.error('unknown error')
+    }
+    return json({ error: 'Missing coordinates' }, { status: 400 })
   }
 
-  return redirect(`/portal?loc=${location}&time=${time}`)
+  const lat = parseFloat(latInput)
+  const lon = parseFloat(lonInput)
+  console.log(`float coords: ${latInput},${lonInput}`, )
+
+  try {
+    invariant(lat && lon, 'lat and lon must be numbers')
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error(error)
+    } else {
+      console.error('unknown error')
+    }
+    return json({ error: 'Invalid coordinates' }, { status: 400 })
+  }
+
+  return redirect(`/portal?lat=${lat}&lon=${lon}`)
 }
 
 function Index() {
   const { getCurrentUTC } = useTimeStore()
-  
-  const { q, cities } = useLoaderData<typeof loader>()
+  const { q, matches } = useLoaderData<typeof loader>()
   const navigation = useNavigation()
   const submit = useSubmit()
   const searching = navigation.location &&
     new URLSearchParams(navigation.location.search).has('q')
 
+  const [debouncedQuery, setDebouncedQuery] = useState(q);
+  const [coords, setCoords] = useState<Coords | undefined>();
+
   useEffect(() => {
-    const searchField = document.getElementById('q')
-    if (searchField instanceof HTMLInputElement) {
-      searchField.value = q || ''
-    }
-  }, [q])
+    // const searchField = document.getElementById('q')
+    // if (searchField instanceof HTMLInputElement) {
+    //   searchField.value = q || ''
+    // }
+    const handler = setTimeout(() => {
+      const isFirstSearch = q === null;
+    // TODO validate user input
+      submit({ q: debouncedQuery }, { replace: !isFirstSearch })
+    }, 300);
+    return () => clearTimeout(handler);
+  }, [submit, debouncedQuery])
+
+  function handleSearchChange(event: React.ChangeEvent<HTMLInputElement>) {
+    setDebouncedQuery(event.target.value)
+  }
 
   return (
     <main className="relative min-h-screen bg-white">
       <div className="mx-auto mt-5">
         {/* Search and Results */}
         <div className='border-b border-black flex flex-col items-center p-y-1 p-x-2 gap-y-2'>
-          <Form
-            id='search-form'
-            role='search'
-            onChange={(event) => {
-              const isFirstSearch = q === null;
-              submit(event.currentTarget, { replace: !isFirstSearch })
-            }}
-            className='border border-green-700 relative'
-          >
-            <input
-              id='q'
-              name='q'
-              type='search'
-              defaultValue={q || ''}
-              placeholder='Search for a location'
-              aria-label='Search for a location'
-              className={searching ? 'loading' : ''}
-            />
-            <div id='search-spinner' hidden={!searching} aria-hidden />
-          </Form>
+          <div className='flex items-center gap-x-2'>
+            <Form
+              id='search-form'
+              role='search'
+              className='border border-green-700 relative rounded-md'
+            >
+              <input
+                id='search-location'
+                name='q'
+                type='search'
+                defaultValue={q || ''}
+                placeholder='Search for a location'
+                aria-label='Search for a location'
+                className={`${searching ? 'loading' : ''} p-2 rounded-md`}
+                onChange={handleSearchChange}
+              />
+              <div id='search-spinner' hidden={!searching} aria-hidden />
+            </Form>
+            <Form id='submit-query' method='post'>
+              {/* <input name='city' defaultValue={entry?.city} hidden={true} />
+              <input name='state' defaultValue={entry?.state} hidden={true} />
+              <input name='country' defaultValue={entry?.country} hidden={true} /> */}
+              <input name='lat' defaultValue={coords?.lat} hidden={true} />
+              <input name='lon' defaultValue={coords?.lon} hidden={true} />
+              <Button variant='default' type='submit'>Set Loc</Button>
+            </Form>
+          </div>
           <div>
-            {/* This rolldown must be definitive locations for USNO API to use */}
-            {cities ? cities.map((city: string) => (
-              // TODO onClick, execute query
-              <div key={city}>{city}</div>
-            )) : null}
+            {matches ? (
+              <ul>
+                {matches.map((entry: Entry) => (
+                  <li key={entry.city}>
+                    <button 
+                      tabIndex={0} 
+                      onClick={() => {
+                        // TODO submit to action for coords validation
+                        setDebouncedQuery(`${entry.city}, ${entry.country}`)
+                        setCoords({ lat: entry.lat, lon: entry.lon })
+                      }}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                          // TODO submit to action for coords validation
+                          setDebouncedQuery(`${entry.city}, ${entry.country}`)
+                          setCoords({ lat: entry.lat, lon: entry.lon })
+                        }
+                      }}
+                    >
+                      {entry.city}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
           </div>
         </div>
         <Form

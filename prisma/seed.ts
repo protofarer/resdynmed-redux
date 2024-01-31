@@ -24,6 +24,7 @@ async function createUser(email: string) {
 
   return user;
 }
+
 async function seed() {
   const email = "rachel@remix.run";
 
